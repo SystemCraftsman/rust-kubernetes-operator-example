@@ -7,7 +7,8 @@ use std::fs::File;
 
 fn main() {
     fs::create_dir_all("target/kubernetes").expect("TODO: panic message");
-    write_crd_to_yaml(&api::game_types::Game::crd())
+    write_crd_to_yaml(&api::game_types::Game::crd());
+    write_crd_to_yaml(&api::world_types::World::crd());
 }
 
 fn write_crd_to_yaml(crd: &CustomResourceDefinition) {

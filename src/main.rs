@@ -1,8 +1,9 @@
 mod api;
 mod controller;
 
-use crate::controller::{ControllerRunner};
 use crate::controller::game_controller::GameReconciler;
+use crate::controller::world_controller::WorldReconciler;
+use crate::controller::ControllerRunner;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -15,6 +16,7 @@ pub enum Error {
     UserInputError(String),
 }
 
-fn main() -> Result<(), kube::Error> {
-    ControllerRunner::new(&GameReconciler{}).run()
+fn main() {
+    ControllerRunner::new(&GameReconciler {}).run();
+    ControllerRunner::new(&WorldReconciler {}).run();
 }
