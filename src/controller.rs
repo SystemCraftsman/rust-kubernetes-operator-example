@@ -1,12 +1,12 @@
-use futures::stream::StreamExt;
-pub(crate) mod game_controller;
-pub(crate) mod world_controller;
+pub mod game_controller;
+pub mod world_controller;
 
 use async_trait::async_trait;
+use futures::stream::StreamExt;
 use k8s_openapi::NamespaceResourceScope;
 use kube::runtime::controller::Action;
 use kube::runtime::Controller;
-use kube::{Api, Client, Resource, ResourceExt};
+use kube::{Api, Client, Resource};
 use serde::de::DeserializeOwned;
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -18,13 +18,11 @@ pub trait Reconciler<K: Resource<Scope = NamespaceResourceScope>> {
     async fn reconcile(obj: Arc<K>, ctx: Arc<ContextData>) -> Result<Action, Error>;
     fn error_policy(obj: Arc<K>, err: &Error, _ctx: Arc<ContextData>) -> Action;
 }
-pub struct ControllerRunner<'a, K: Resource<Scope = NamespaceResourceScope>, T: Reconciler<K>> {
-    reconciler: &'a T,
-    _marker: marker::PhantomData<K>,
+pub struct ControllerRunner<K: Resource<Scope = NamespaceResourceScope>> {
+    _resource_marker: marker::PhantomData<K>,
 }
 
 impl<
-        'a,
         K: Resource<Scope = NamespaceResourceScope>
             + Clone
             + DeserializeOwned
@@ -32,17 +30,9 @@ impl<
             + Send
             + Sync
             + 'static,
-        T: Reconciler<K>,
-    > ControllerRunner<'a, K, T>
+    > ControllerRunner<K>
 {
-    pub fn new(reconciler: &'a T) -> Self {
-        ControllerRunner {
-            reconciler,
-            _marker: Default::default(),
-        }
-    }
-
-    pub async fn run(&self)
+    pub async fn run<T: Reconciler<K>>()
     where
         <K as Resource>::DynamicType: Default,
         <K as Resource>::DynamicType: std::cmp::Eq,

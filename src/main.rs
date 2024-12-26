@@ -7,13 +7,12 @@ use crate::controller::ControllerRunner;
 
 #[tokio::main]
 async fn main() {
-    let game_task = tokio::spawn(async {
-        ControllerRunner::new(&GameReconciler {}).run().await;
-    });
-
-    let world_task = tokio::spawn(async {
-        ControllerRunner::new(&WorldReconciler {}).run().await;
-    });
-
-    let _ = tokio::join!(game_task, world_task,);
+    let _ = tokio::join!(
+        tokio::spawn(async {
+            ControllerRunner::run::<GameReconciler>().await;
+        }),
+        tokio::spawn(async {
+            ControllerRunner::run::<WorldReconciler>().await;
+        }),
+    );
 }
