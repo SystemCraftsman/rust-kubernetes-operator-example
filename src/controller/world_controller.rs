@@ -4,8 +4,7 @@ use async_trait::async_trait;
 use kube::ResourceExt;
 use kube::runtime::controller::Action;
 use crate::api::world_types::World;
-use crate::controller::{ContextData, Reconciler};
-use crate::Error;
+use crate::controller::{ContextData, Error, Reconciler};
 
 pub struct WorldReconciler;
 

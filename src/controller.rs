@@ -1,9 +1,7 @@
 use futures::stream::StreamExt;
-pub mod game_controller;
-pub mod world_controller;
+pub(crate) mod game_controller;
+pub(crate) mod world_controller;
 
-use crate::api::game_types::Game;
-use crate::{controller, Error};
 use async_trait::async_trait;
 use k8s_openapi::NamespaceResourceScope;
 use kube::runtime::controller::Action;
@@ -14,17 +12,6 @@ use std::fmt::Debug;
 use std::hash::Hash;
 use std::marker;
 use std::sync::Arc;
-use std::time::Duration;
-
-pub struct ContextData {
-    client: Client,
-}
-
-impl ContextData {
-    pub fn new(client: Client) -> Self {
-        ContextData { client }
-    }
-}
 
 #[async_trait]
 pub trait Reconciler<K: Resource<Scope = NamespaceResourceScope>> {
@@ -55,7 +42,6 @@ impl<
         }
     }
 
-    #[tokio::main]
     pub async fn run(&self)
     where
         <K as Resource>::DynamicType: Default,
@@ -65,27 +51,45 @@ impl<
         <K as kube::Resource>::DynamicType: Debug,
         <K as kube::Resource>::DynamicType: Unpin,
     {
-
         let client: Client = Client::try_default()
             .await
             .expect("Expected a valid KUBECONFIG environment variable.");
         let context: Arc<ContextData> = Arc::new(ContextData::new(client.clone()));
         let crd_api: Api<K> = Api::all(client);
 
-
-            Controller::new(crd_api, Default::default())
-                .run(<T>::reconcile, <T>::error_policy, context)
-                .for_each(|reconciliation_result| async move {
-                    match reconciliation_result {
-                        Ok(resource) => {
-                            println!("Reconciliation successful. Resource: {:?}", resource);
-                        }
-                        Err(reconciliation_err) => {
-                            eprintln!("Reconciliation error: {:?}", reconciliation_err)
-                        }
+        Controller::new(crd_api, Default::default())
+            .run(<T>::reconcile, <T>::error_policy, context)
+            .for_each(|reconciliation_result| async move {
+                match reconciliation_result {
+                    Ok(resource) => {
+                        println!("Reconciliation successful. Resource: {:?}", resource);
                     }
-                })
-                .await;
-
+                    Err(reconciliation_err) => {
+                        eprintln!("Reconciliation error: {:?}", reconciliation_err)
+                    }
+                }
+            })
+            .await;
     }
+}
+
+pub struct ContextData {
+    client: Client,
+}
+
+impl ContextData {
+    pub fn new(client: Client) -> Self {
+        ContextData { client }
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("Kubernetes reported error: {source}")]
+    KubeError {
+        #[from]
+        source: kube::Error,
+    },
+    #[error("Invalid Echo CRD: {0}")]
+    UserInputError(String),
 }

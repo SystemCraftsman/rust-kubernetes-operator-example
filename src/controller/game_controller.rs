@@ -4,8 +4,7 @@ use async_trait::async_trait;
 use kube::ResourceExt;
 use kube::runtime::controller::Action;
 use crate::api::game_types::Game;
-use crate::controller::{ContextData, Reconciler};
-use crate::Error;
+use crate::controller::{ContextData, Error, Reconciler};
 
 pub struct GameReconciler;
 

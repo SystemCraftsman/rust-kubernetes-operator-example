@@ -5,18 +5,15 @@ use crate::controller::game_controller::GameReconciler;
 use crate::controller::world_controller::WorldReconciler;
 use crate::controller::ControllerRunner;
 
-#[derive(Debug, thiserror::Error)]
-pub enum Error {
-    #[error("Kubernetes reported error: {source}")]
-    KubeError {
-        #[from]
-        source: kube::Error,
-    },
-    #[error("Invalid Echo CRD: {0}")]
-    UserInputError(String),
-}
+#[tokio::main]
+async fn main() {
+    let game_task = tokio::spawn(async {
+        ControllerRunner::new(&GameReconciler {}).run().await;
+    });
 
-fn main() {
-    ControllerRunner::new(&GameReconciler {}).run();
-    ControllerRunner::new(&WorldReconciler {}).run();
+    let world_task = tokio::spawn(async {
+        ControllerRunner::new(&WorldReconciler {}).run().await;
+    });
+
+    let _ = tokio::join!(game_task, world_task,);
 }
