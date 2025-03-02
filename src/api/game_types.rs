@@ -1,9 +1,14 @@
 use k8s_openapi::serde::{Deserialize, Serialize};
-use kube::{CustomResource};
+use kube::CustomResource;
 use schemars::JsonSchema;
 
 #[derive(CustomResource, Deserialize, Serialize, Clone, Debug, JsonSchema)]
-#[kube(kind = "Game", group = "kubegame.systemcraftsman.com", version = "v1alpha1", namespaced)]
+#[kube(
+    kind = "Game",
+    group = "kubegame.systemcraftsman.com",
+    version = "v1alpha1",
+    namespaced
+)]
 #[kube(status = "GameStatus")]
 pub struct GameSpec {
     database: Database,
