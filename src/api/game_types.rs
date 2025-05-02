@@ -7,9 +7,9 @@ use schemars::JsonSchema;
     kind = "Game",
     group = "kubegame.systemcraftsman.com",
     version = "v1alpha1",
-    namespaced
+    namespaced,
+    status = "GameStatus"
 )]
-#[kube(status = "GameStatus")]
 pub struct GameSpec {
     database: Database,
 }

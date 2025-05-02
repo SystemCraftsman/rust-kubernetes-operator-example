@@ -12,7 +12,7 @@ pub struct GameReconciler;
 impl Reconciler<Game> for GameReconciler {
     async fn reconcile(obj: Arc<Game>, _ctx: Arc<ContextData>) -> Result<Action, Error> {
         println!("reconcile request: {}", obj.name_any());
-        Ok(Action::requeue(Duration::from_secs(3600)))
+        Ok(Action::requeue(Duration::from_secs(10)))
     }
 
     fn error_policy(obj: Arc<Game>, err: &Error, _ctx: Arc<ContextData>) -> Action {
